@@ -1,0 +1,115 @@
+import * as React from "react"
+import { Frame } from "framer"
+
+export function SlaterChat() {
+    const [msgs, setMsgs] = React.useState<{ role: string; text: string }[]>([
+        { role: "system", text: "Hi! How can I help you today?" },
+    ])
+    const [input, setInput] = React.useState("")
+    const endRef = React.useRef<HTMLDivElement>(null)
+
+    React.useEffect(() => {
+        endRef.current?.scrollIntoView({ behavior: "smooth" })
+    }, [msgs])
+
+    const send = async () => {
+        if (!input.trim()) return
+
+        const next = [...msgs, { role: "user", text: input }]
+        setMsgs(next)
+        setInput("")
+
+        const payload = {
+            messages: next.map((msg) => ({
+                role: msg.role,
+                content: msg.text,
+            })),
+        }
+
+        try {
+            const res = await fetch(
+                "https://hook.eu2.make.com/p7on3h0lr46ypqhfemfdqdsl89ph49cp",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                }
+            )
+
+            const data = await res.json()
+
+            const reply = data.reply || "Sorry, I didn’t get that."
+            setMsgs((prev) => [...prev, { role: "assistant", text: reply }])
+        } catch (err) {
+            setMsgs((prev) => [
+                ...prev,
+                { role: "assistant", text: "Error: API unreachable." },
+            ])
+        }
+    }
+
+    return (
+        <div style={{ padding: 20 }}>
+            <img
+                src="https://uploads-ssl.webflow.com/65ff6a7e8e5f657f4b8ef43b/6607dd7929f1a47a5bd42d6b_slaterblue.png"
+                style={{ maxWidth: 200, marginBottom: 20 }}
+            />
+            <div style={{ maxHeight: "60vh", overflowY: "auto" }}>
+                {msgs.map((m, i) => (
+                    <div
+                        key={i}
+                        style={{
+                            background:
+                                m.role === "user"
+                                    ? "#d0ffd0"
+                                    : m.role === "assistant"
+                                      ? "#eee"
+                                      : "#222",
+                            color: m.role === "system" ? "#fff" : "#000",
+                            borderRadius: 15,
+                            padding: 10,
+                            marginBottom: 10,
+                            maxWidth: "80%",
+                        }}
+                    >
+                        {m.text}
+                    </div>
+                ))}
+                <div ref={endRef} />
+            </div>
+            <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask your sales assistant..."
+                style={{
+                    marginTop: 20,
+                    width: "100%",
+                    padding: 10,
+                    fontSize: 16,
+                    borderRadius: 5,
+                    border: "1px solid #ccc",
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === "Enter") send()
+                }}
+            />
+            <button
+                onClick={send}
+                style={{
+                    marginTop: 10,
+                    padding: "10px 20px",
+                    background: "#007bff",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 5,
+                    cursor: "pointer",
+                }}
+            >
+                Send
+            </button>
+        </div>
+    )
+}
