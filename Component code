@@ -43,9 +43,11 @@ export function SlaterChat() {
             const reply = data.reply || "Sorry, I didn’t get that."
             setMsgs((prev) => [...prev, { role: "assistant", text: reply }])
         } catch (err) {
+            console.error(err)
+            const msg = err instanceof Error ? err.message : "Unknown error"
             setMsgs((prev) => [
                 ...prev,
-                { role: "assistant", text: "Error: API unreachable." },
+                { role: "assistant", text: `Error: ${msg}` },
             ])
         }
     }
